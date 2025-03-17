@@ -6,7 +6,6 @@ from phue import Bridge, Light
 
 def get_bridge_ip():
     response = requests.get('https://discovery.meethue.com/')
-    print(response)
     bridges = response.json()[0]
 
     if bridges:
@@ -53,4 +52,3 @@ if __name__ == '__main__':
     light = get_light_with_name(bridge.lights, lamp_name)
 
     kelvin_cycle(light)
-
