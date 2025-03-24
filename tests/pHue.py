@@ -75,8 +75,6 @@ def kelvin_to_sRGB(K: int) -> ndarray:
         high_row = df.loc[df['kelvin'] == high]
         highRGB = get_rgb(high_row)
 
-        print(lowRGB, highRGB)
-
         r = (high - K) / 100
         interpolated = (1 - r) * lowRGB + r * highRGB
 
