@@ -1,9 +1,9 @@
+import math
 import time
+
+import requests
 import numpy as np
 import pandas as pd
-import requests
-import colour
-import math
 from phue import Bridge, Light
 
 
@@ -137,9 +137,32 @@ def kelvin_cycle(light: Light) -> list[list[int | float]]:
     return rgb_at_kelvin
 
 
+kelvin_table = {
+    2000: (255,210,39),
+    2198: (255,218,72),
+    2398: (255,224,94),
+    2597: (255,229,113),
+    2801: (255,233,128),
+    3003: (255,236,142),
+    3205: (255,239,154),
+    3401: (255,241,164),
+    3597: (255,243,173),
+    3802: (255,245,182),
+    4000: (255,246,190),
+    4202: (255,248,198),
+    4405: (255,249,205),
+    4608: (255,250,211),
+    4808: (255,250,217),
+    5000: (255,251,222),
+    5208: (255,252,228),
+    5405: (255,252,233),
+    5587: (255,253,237),
+    5814: (255,253,242),
+    5988: (255,254,245)
+}
+
 if __name__ == '__main__':
-    #id, ip, port = get_bridge_ip()
-    ip = '192.168.1.92'
+    id, ip, port = get_bridge_ip()
 
     bridge = Bridge(ip)
     bridge.connect()
