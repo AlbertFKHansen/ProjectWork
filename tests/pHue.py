@@ -1,6 +1,7 @@
 import math
 import time
 
+import colour
 import requests
 import numpy as np
 import pandas as pd
@@ -30,7 +31,14 @@ def get_light_with_name(lights: list[Light], name: str) -> Light | None:
     return None
 
 
-def xyY_to_sRGB(x: float, y: float, Y: int) -> np.ndarray[tuple[int, ...], np.dtype]:
+def xyY_to_sRGB(x: float, y: float, Y: int, self_implementation: bool = False) -> np.ndarray[tuple[int, ...], np.dtype]:
+    if not self_implementation:
+        Y = Y / 254
+        X = x / y * Y
+        Z = (1 - x - y) / y * Y
+
+        return (np.array(colour.XYZ_to_sRGB([X, Y, Z])) * 255).astype(int)
+
     if Y == 0:
         return 0, 0, 0
 
@@ -137,7 +145,7 @@ def kelvin_cycle(light: Light) -> list[list[int | float]]:
     return rgb_at_kelvin
 
 
-kelvin_table = {
+kelvin_table_self = {
     2000: (255,210,39),
     2198: (255,218,72),
     2398: (255,224,94),
@@ -159,6 +167,29 @@ kelvin_table = {
     5587: (255,253,237),
     5814: (255,253,242),
     5988: (255,254,245)
+}
+kelvin_table_colour = {
+    2000: (294, 161, 27),
+    2198: (283, 167, 53),
+    2398: (274, 172, 70),
+    2597: (266, 175, 85),
+    2801: (258, 179, 97),
+    3003: (252, 181, 108),
+    3205: (246, 183, 117),
+    3401: (241, 185, 125),
+    3597: (236, 187, 132),
+    3802: (231, 188, 139),
+    4000: (227, 189, 145),
+    4202: (224, 190, 151),
+    4405: (220, 191, 157),
+    4608: (217, 192, 162),
+    4808: (214, 192, 166),
+    5000: (211, 193, 170),
+    5208: (209, 193, 175),
+    5405: (206, 194, 178),
+    5587: (204, 194, 182),
+    5814: (202, 194, 185),
+    5988: (200, 195, 188)
 }
 
 if __name__ == '__main__':
