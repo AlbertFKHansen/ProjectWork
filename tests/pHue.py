@@ -6,7 +6,7 @@ import colour
 import requests
 import numpy as np
 import pandas as pd
-from numpy import ndarray, dtype
+from numpy import ndarray
 from phue import Bridge, Light
 
 
@@ -47,7 +47,12 @@ def xyY_to_sRGB(x: float, y: float, Y: int) -> ndarray:
     return sRGB
 
 
-def kelvin_to_sRGB(K: float) -> ndarray:
+def kelvin_to_sRGB(K: int) -> ndarray:
+    """
+    Supports kelvin values from 2000 to 6500
+    :param K: [2000; 6500]
+    :return: RGB Kelvin values [0; 255]
+    """
     df = pd.read_csv('kelvin_table.csv')
 
     def get_rgb(data):
@@ -177,8 +182,6 @@ table = {
 
 
 if __name__ == '__main__':
-    print(kelvin_to_sRGB(4630))
-    exit()
     id, ip, port = get_bridge_ip()
     bridge = Bridge(ip)
     bridge.connect()
