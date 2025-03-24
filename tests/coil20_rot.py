@@ -91,59 +91,64 @@ def plot_features(features, title, location):
     plt.close()
 
 
+def load_coil20():
+    '''
+    Loads the coil20 dataset from the Data folder
+    '''
+    coil20 = list()
+    for i in range(20):
+        coil20.append(list())
+        for j in range(72):
+            try:
+                img = Image.open(f'Data/coil-20/{i+1}/obj{i+1}__{j}.png')
+                coil20[i].append(img)
+            except:
+                print(f"Error: ulimit might be too small. Or the file obj{i+1}__{j}.png does not exist")
+                quit()
+    return coil20
 
 
 
+if __name__ == '__main__':
+    # importing images
+    # if you can't.. change ulimit to a bigger number, by: ulimit -n $BIG_NUMBER
+    coil20 = load_coil20()
 
-# importing images
-# if you can't.. change ulimit to a bigger number, by: ulimit -n $BIG_NUMBER
-coil20 = list()
-for i in range(20):
-    coil20.append(list())
-    for j in range(72):
-        try:
-            img = Image.open(f'Data/coil-20/{i+1}/obj{i+1}__{j}.png')
-            coil20[i].append(img)
-        except:
-            print(f"Error: ulimit might be too small. Or the file obj{i+1}__{j}.png does not exist")
-            quit()
-
-
-# baseline of images without model
-print("Generating baseline plots")
-for i in tqdm(range(20)):
-    features = np.array([])
-    for j in range(72):
-        img = np.asarray(coil20[i][j])
-        features = np.append(features, img.flatten())
-    
-    plot_features(features, f"baseline/{i+1}","tests/coil20_rot/")
-
-
-
-# selecting device to run models on
-if torch.cuda.is_available():
-    device = "cuda"
-    print("\nUsing " + torch.cuda.get_device_name(0))
-else:
-    device = "cpu"
-    print("Using CPU")
-
-
-available_model_names = clip.available_models()
-
-for model_name in available_model_names:
-    # loading model and downloading if not already downloaded
-    print(f"Loading the {model_name} model")
-    model, preprocess = clip.load(model_name, device=device)
-
-    print(f"Generating dim-reduction plots for {model_name}")
+    # baseline of images without model
+    print("Generating baseline plots")
     for i in tqdm(range(20)):
         features = np.array([])
         for j in range(72):
-            image = preprocess(coil20[i][j]).unsqueeze(0).to(device)
-            with torch.no_grad():
-                image_features = model.encode_image(image)
-            features = np.append(features, image_features.cpu().numpy())
+            img = np.asarray(coil20[i][j])
+            features = np.append(features, img.flatten())
         
-        plot_features(features, f"{model_name}/{i+1}","tests/coil20_rot/")
+        plot_features(features, f"baseline/{i+1}","tests/coil20_rot/")
+
+
+
+    # selecting device to run models on
+    if torch.cuda.is_available():
+        device = "cuda"
+        print("\nUsing " + torch.cuda.get_device_name(0))
+    else:
+        device = "cpu"
+        print("Using CPU")
+
+
+    available_model_names = clip.available_models()
+
+    for model_name in available_model_names:
+        # loading model and downloading if not already downloaded
+        print(f"Loading the {model_name} model")
+        model, preprocess = clip.load(model_name, device=device)
+
+        print(f"Generating dim-reduction plots for {model_name}")
+        for i in tqdm(range(20)):
+            features = np.array([])
+            for j in range(72):
+                image = preprocess(coil20[i][j]).unsqueeze(0).to(device)
+                with torch.no_grad():
+                    image_features = model.encode_image(image)
+                features = np.append(features, image_features.cpu().numpy())
+            
+            plot_features(features, f"{model_name}/{i+1}","tests/coil20_rot/")
