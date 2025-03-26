@@ -87,8 +87,8 @@ def kelvin_cycle(light: Light) -> list[list[int | float]]:
 
     rgb_at_kelvin = []
 
-    kelvin_range = np.linspace(min_kelvin, max_kelvin, num=41, dtype=int)
-    #kelvin_range = range(2000, 6500+1)
+    kelvin_range = np.linspace(min_kelvin, max_kelvin, num=46, dtype=int)
+
     light.on = True
     time.sleep(0.5)
 
