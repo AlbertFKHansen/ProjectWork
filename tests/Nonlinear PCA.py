@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.collections as mc
 
 import torch
 import torch.nn as nn
@@ -94,20 +96,20 @@ class NNAutoencoder(nn.Module):
 
         # Encoder: Reduce dimensionality
         self.encoder = nn.Sequential(
-            nn.Linear(input_dim, 512),
+            nn.Linear(input_dim, 256),
             nn.ReLU(),
-            nn.Linear(512, 256),
+            nn.Linear(256, 64),
             nn.ReLU(),
-            nn.Linear(256, encoding_dim)  # Encoded representation
+            nn.Linear(64, encoding_dim)  # Encoded representation
         )
 
         # Decoder: Expand back to input size
         self.decoder = nn.Sequential(
-            nn.Linear(encoding_dim, 256),
+            nn.Linear(encoding_dim, 64),
             nn.ReLU(),
-            nn.Linear(256, 512),
+            nn.Linear(64, 256),
             nn.ReLU(),
-            nn.Linear(512, input_dim),
+            nn.Linear(256, input_dim),
         )
 
     def forward(self, x):
@@ -240,6 +242,72 @@ def clip_test():
         plt.grid(True)
         plt.show()
 
+        plt.savefig(location + title + ".pdf")
+        plt.close()
+
+    def plot_features(features, title, location):
+        dataset = TensorDataset(features, features)
+        batch_size = 8
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+        encoding_dim = 3  # Updated to 3D latent space
+        input_dim = features.shape[2]  # Ensure input_dim is dynamically assigned
+        model = NNAutoencoder(input_dim=input_dim, encoding_dim=encoding_dim)
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+        # Train the autoencoder
+        num_epochs = 50
+        for epoch in range(num_epochs):
+            running_loss = 0.0
+            for batch_inputs, _ in dataloader:
+                optimizer.zero_grad()
+                outputs, _ = model(batch_inputs)
+                loss = criterion(outputs, batch_inputs)
+                loss.backward()
+                optimizer.step()
+                running_loss += loss.item() * batch_inputs.size(0)
+
+            epoch_loss = running_loss / len(dataset)
+            print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}")
+
+        # Extract encoded features
+        encoded_points = []
+        with torch.no_grad():
+            for d in features:
+                d = d.unsqueeze(0)  # Add batch dimension
+                encoded = model(d)[1]
+                encoded_points.append(encoded.view(-1).cpu().numpy())
+
+        encoded_points = np.array(encoded_points)
+
+        # 3D Plot
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Sort points by index to preserve order
+        indices = np.arange(len(encoded_points))
+        sorted_indices = np.argsort(indices)
+        sorted_points = encoded_points[sorted_indices]
+
+        # Plot lines to connect points
+        ax.plot(sorted_points[:, 0], sorted_points[:, 1], sorted_points[:, 2], 'k-', alpha=0.3)
+
+        # Scatter plot
+        sc = ax.scatter(sorted_points[:, 0], sorted_points[:, 1], sorted_points[:, 2],
+                        c=indices, cmap="hsv", alpha=0.7, edgecolors="black")
+
+        # Add color bar
+        cbar = plt.colorbar(sc)
+        cbar.set_label("Image Index")
+
+        # Labels and title
+        ax.set_xlabel("Latent Dimension 1")
+        ax.set_ylabel("Latent Dimension 2")
+        ax.set_zlabel("Latent Dimension 3")
+        ax.set_title(title)
+
+        plt.show()
         plt.savefig(location + title + ".pdf")
         plt.close()
 
