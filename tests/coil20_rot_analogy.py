@@ -7,6 +7,13 @@ import clip
 from PIL import Image
 from matplotlib import pyplot as plt
 from matplotlib.colors import Normalize
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics.pairwise import manhattan_distances
+from scipy.spatial.distance import chebyshev
+from scipy.spatial.distance import cdist
+
+
 
 # for user progress bar
 from tqdm import tqdm
@@ -15,7 +22,7 @@ from tqdm import tqdm
 from coil20_rot import load_coil20
 
 
-def plot_analogy_similarity(features,lable_imbeddings, title, location):
+def plot_analogy_similarity(features,label_imbeddings, title, location):
     '''
     Takes a 1D array of features from 72 images of an object
     and plots the similarity of the images with a directional label using cosine similarity
@@ -31,16 +38,13 @@ def plot_analogy_similarity(features,lable_imbeddings, title, location):
     '''
 
     features = features.reshape(72,features.shape[0]//72)
-    lable_imbeddings = lable_imbeddings.reshape(3,lable_imbeddings.shape[0]//3)
+    label_imbeddings = label_imbeddings.reshape(3,label_imbeddings.shape[0]//3)
 
-    similarity = np.zeros((3,72))
-    for i in range(3):
-        for j in range(72):
-            similarity[i,j] = np.dot(features[j],lable_imbeddings[i])/(np.linalg.norm(features[j])*np.linalg.norm(lable_imbeddings[i]))
+    similarity = cosine_similarity(label_imbeddings,features)
 
     fig, ax = plt.subplots()
     ax.plot(similarity[0], label="front")
-    ax.plot(similarity[1], label="back")
+    ax.plot(similarity[1], label="behind")
     ax.plot(similarity[2], label="side")
     ax.legend()
     ax.set_title(title)
@@ -98,7 +102,7 @@ for model_name in available_model_names:
     model, preprocess = clip.load(model_name, device=device)
 
     # getting the imbeddings for the directions
-    directions = ["front","back","side"]
+    directions = ["from the front","from the behind","from the side"]
     lable_imbeddings = np.array([])
     for direction in directions:
         text = f"{direction}"
@@ -113,6 +117,7 @@ for model_name in available_model_names:
             image = preprocess(coil20[i][j]).unsqueeze(0).to(device)
             with torch.no_grad():
                 image_features = model.encode_image(image)
+
             features = np.append(features, image_features.cpu().numpy())
         
         
