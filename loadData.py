@@ -1,0 +1,91 @@
+import os
+import re
+from PIL import Image
+
+def _is_image_file(filename):
+    return filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))
+
+def _extract_image_index(filename):
+    """Extract number after '__' in filenames like obj1__5.png"""
+    match = re.search(r'__(\d+)', filename)
+    return int(match.group(1)) if match else float('inf')
+
+def _load_folder(path):
+    """
+    Recursively loads the folder into a nested dictionary.
+    - Subfolders become dict keys
+    - Image files are loaded as a list of PIL Image objects, sorted by index
+    """
+    entries = os.listdir(path)
+    files = [f for f in entries if _is_image_file(f)]
+    subdirs = [f for f in entries if os.path.isdir(os.path.join(path, f))]
+
+    if files and not subdirs:
+        # Folder only contains image files → return sorted list of images
+        files.sort(key=_extract_image_index)
+        return [Image.open(os.path.join(path, f)) for f in files]
+
+    # Folder has subfolders (may or may not have images too)
+    result = {}
+
+    for entry in entries:
+        full_path = os.path.join(path, entry)
+        if os.path.isdir(full_path):
+            result[entry] = _load_folder(full_path)
+        elif _is_image_file(entry):
+            # If there are images *and* folders, put them under a special key
+            result.setdefault("_images", []).append((_extract_image_index(entry), Image.open(full_path)))
+
+    # Sort images under "_images" key if present
+    if "_images" in result:
+        result["_images"].sort(key=lambda x: x[0])  # sort by index
+        result["_images"] = [img for _, img in result["_images"]]  # strip index
+
+    return result
+
+def loadDataset(root_path:str):
+    """
+    Loads all top-level dataset dirs under root_path into a nested dictionary.
+
+    Args:
+        root_path (str): Path to the root dir containing dataset dirs.
+    Returns:
+        datasets (dict): A dictionary where keys are dataset names and values are the loaded datasets.
+    
+    Example:
+    >>> root_path = 'Data'
+    >>> datasets = loadDatasets(root_path)
+    >>> # Result structure:
+    >>> datasets = {
+    ...     'dataset1': {
+    ...         'object1': [...],
+    ...         'object2': [...],
+    ...     },
+    ...     'dataset2': {
+    ...         ...
+    ...     }
+    ... }
+    """
+
+    datasets = {}
+    for name in os.listdir(root_path):
+        full_path = os.path.join(root_path, name)
+        if os.path.isdir(full_path):
+            datasets[name] = _load_folder(full_path)
+    return datasets
+
+
+
+
+if __name__ == '__main__':
+    # Example usage
+    root_path = 'Data'
+    datasets = loadDataset(root_path)
+    
+    for dataset_name, dataset in datasets.items():
+        print(f"Dataset: {dataset_name}")
+        for key, value in dataset.items():
+            if isinstance(value, list):
+                print(f"  {key}: {len(value)} images")
+            else:
+                print(f"  {key}: {value}")
