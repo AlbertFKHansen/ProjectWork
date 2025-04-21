@@ -33,7 +33,7 @@ def _load_folder(path):
         if os.path.isdir(full_path):
             result[entry] = _load_folder(full_path)
         elif _is_image_file(entry):
-            # If there are images *and* folders, put them under a special key
+            # If there are images *and* folders, put them under a special key to avoid confusion
             result.setdefault("_images", []).append((_extract_image_index(entry), Image.open(full_path)))
 
     # Sort images under "_images" key if present
@@ -46,6 +46,11 @@ def _load_folder(path):
 def loadDataset(root_path:str):
     """
     Loads all top-level dataset dirs under root_path into a nested dictionary.
+    Each dataset dir is expected to contain subdirs for objects, and each object dir may contain images.
+    The images are loaded as PIL Image objects, and the subdirs are loaded recursively.
+    The function returns a dictionary where keys are dataset names and values are the loaded Images.
+    If a dir contains both images and subdirs, the images are stored under the key "_images".
+
 
     Args:
         root_path (str): Path to the root dir containing dataset dirs.
@@ -60,6 +65,7 @@ def loadDataset(root_path:str):
     ...     'dataset1': {
     ...         'object1': [...],
     ...         'object2': [...],
+    ...         '_images': [...],
     ...     },
     ...     'dataset2': {
     ...         ...
