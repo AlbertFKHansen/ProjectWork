@@ -1,3 +1,19 @@
+"""
+Install gphoto2:
+sudo apt install gphoto2
+________________________
+See connected cameras:
+gphoto2 --auto-detect
+_____________________
+Connect to camera:
+gphoto2 --summary
+
+If you get an error when connecting to camera (Error -53), try killing all gvfs daemons with:
+pkill gvfsd
+Restart the camera and try again.
+"""
+
+
 import subprocess
 import os
 import gphoto2 as gp
@@ -14,7 +30,7 @@ def capture_image2(target_folder='captures'):
     # Initialize camera
     camera = gp.Camera()
     camera.init()
-
+    print(camera)
     try:
         # Capture image
         file_path = camera.capture(gp.GP_CAPTURE_IMAGE)
