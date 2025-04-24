@@ -12,7 +12,11 @@ from phue import Bridge, Light
 
 def get_bridge_ip() -> tuple[str, str, int] | None:
     response = requests.get('https://discovery.meethue.com/')
-    bridges = response.json()[0]
+    try:
+        bridges = response.json()[0]
+    except ValueError:
+        print(ValueError)
+        return 'None', '192.168.1.101', 0
 
     if bridges:
         id = bridges['id']
@@ -181,10 +185,11 @@ table = {
 
 if __name__ == '__main__':
     id, ip, port = get_bridge_ip()
+    print(ip)
     bridge = Bridge(ip)
     bridge.connect()
 
-    lamp_name = 'Lampe mod tv'
+    lamp_name = 'Lamp 1'
     light = get_light_with_name(bridge.lights, lamp_name)
 
     rgb_at_kelvin = kelvin_cycle(light)
@@ -192,4 +197,4 @@ if __name__ == '__main__':
     kelvin_table = pd.DataFrame(rgb_at_kelvin, columns=['kelvin', 'R', 'G', 'B'])
     print(kelvin_table)
 
-    kelvin_table.to_csv('kelvin_table.csv', index=False)
+    #kelvin_table.to_csv('kelvin_table.csv', index=False)
