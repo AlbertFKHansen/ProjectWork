@@ -39,6 +39,9 @@ for obj_folder in sorted(base_path.iterdir()):
             bottom = top + crop_height - offset
             img = img.crop((left, top, right, bottom))
 
+            max_size = (100, 100)
+            img.thumbnail(max_size, Image.LANCZOS)
+
             #Save Image
             thumb_name = f"{obj_folder.name}_{target_angle}_thumbnail.png"
             output_path = output_dir / thumb_name
