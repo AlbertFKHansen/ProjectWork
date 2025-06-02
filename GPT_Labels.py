@@ -1,0 +1,160 @@
+import json
+import json
+
+label_dict = {
+    "Wrist Watch": [
+        "wrist watch",
+        "analog watch",
+        "leather strap watch",
+        "black wristwatch",
+        "men's watch",
+        "watch",
+        "timepiece"
+    ],
+    "LEGO Minifigure": [
+        "lego minifigure",
+        "toy figurine",
+        "lego man",
+        "plastic figure",
+        "action figure",
+        "mini toy figure",
+        "figurine"
+    ],
+    "LEGO Brick": [
+        "lego brick",
+        "plastic building block",
+        "toy brick",
+        "construction block",
+        "interlocking brick",
+        "brick",
+        "block"
+    ],
+    "Wall Power Adapter": [
+        "wall power adapter",
+        "macbook charger",
+        "laptop charger",
+        "AC power adapter",
+        "power brick",
+        "charger",
+        "power adapter",
+    ],
+    "Combination Lock": [
+        "combination lock", 
+        "padlock with dials", 
+        "security lock",
+        "travel luggage lock", 
+        "lock with rotating letters",
+        "padlock", 
+        "lock"
+    ],
+    "Game Controller": [
+        "video game controller", 
+        "playstation controller",
+         "gamepad",
+        "dual analog joystick",
+         "gaming device",
+        "controller",
+         "joystick"
+    ],
+    "Light Bulb": [
+        "light bulb",
+        "incandescent bulb",
+        "electric bulb",
+        "household light",
+        "screw-in bulb",
+        "bulb",
+        "lamp"
+    ],
+    "Rubber Duck": [
+        "rubber duck", 
+        "toy duck", 
+        "yellow duck",
+        "bathtub toy", 
+        "plastic duck",
+        "duck", 
+        "toy"
+    ],
+    "Rubik's Cube": [
+        "rubik's cube", 
+        "puzzle cube", 
+        "colorful cube toy",
+        "3x3 cube puzzle", 
+        "logic puzzle",
+        "cube", 
+        "puzzle"
+    ],
+    "9V Battery": [
+        "9 volt battery", 
+        "rectangular battery", 
+        "power cell",
+        "GP battery", 
+        "electronic battery",
+        "battery", 
+        "power source"
+    ],
+    "Faxe Kondi Can": [
+        "soda can", 
+        "green soft drink can", 
+        "Faxe Kondi",
+        "carbonated drink", 
+        "aluminum beverage can",
+        "soda", 
+        "can"
+    ],
+    "Sunglasses": [
+        "sunglasses", 
+        "dark sunglasses", 
+        "shaded glasses",
+        "fashion sunglasses", 
+        "eyewear",
+        "glasses", 
+        "shades"
+    ],
+    "Thermo Cup": [
+        "thermos mug", 
+        "insulated cup", 
+        "travel mug",
+        "metal coffee tumbler", 
+        "thermal beverage container",
+        "cup", 
+        "mug"
+    ],
+    "Toy Car": [
+        "toy car", 
+        "miniature car", 
+        "model vehicle",
+        "small grey toy car", 
+        "die-cast car",
+        "car", 
+        "vehicle"
+    ],
+    "Cup without Handle": [
+        "ceramic cup", "espresso cup", 
+        "coffee cup without handle",
+        "small drinking cup", 
+        "stoneware tumbler",
+        "cup", 
+        "drinking vessel"
+    ],
+    "Cup with Handle": [
+        "ceramic mug", 
+        "coffee cup", 
+        "brown tea cup",
+        "cup with handle", 
+        "stoneware coffee mug",
+        "mug", 
+        "tea cup"
+    ],
+    "Duct Tape Roll": [
+        "duct tape roll", 
+        "roll of tape", 
+        "grey adhesive tape",
+        "tape reel", 
+        "sticky tape roll",
+        "tape", 
+        "adhesive"
+    ]
+}
+
+with open("object_labels.json", "w", encoding="utf-8") as f:
+    json.dump(label_dict, f, indent=4, ensure_ascii=False)
