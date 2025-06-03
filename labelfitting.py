@@ -10,6 +10,22 @@ from tqdm import tqdm
 import json
 import glob
 
+
+# Version that works for coil and our own data ::: Just choose which dataset you want to fit
+data = 'coil' # 'dataset' or 'coil' <- Change this to the dataset you want to fit
+print(f'Fitting on {data}')
+
+coil = 'Data/coil20/rot'
+dataset = 'Data/Dataset/rot'
+
+if data == 'coil':
+    current_dataset = coil
+elif data == 'dataset':
+    current_dataset = dataset
+else:
+    raise ValueError('Invalid value for data')
+
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f'Model is running on {device}', end='\n\n')
 model, preprocess = clip.load("ViT-L/14@336px", device)
@@ -20,22 +36,25 @@ with open("Imagenet_classes.txt", "r") as f:
 imagenet_labels = [v.split(',')[0].strip() for v in class_dict.values()]
 print(f'All ImageNet labels are \n{imagenet_labels}', end='\n\n')
 
-# Load our object class names from json
-with open("object_labels.json", "r") as f:
-    object_labels = json.load(f)
-print(f'All object labels are: \n{object_labels}', end='\n\n')
+if data == 'coil':
+    labels = imagenet_labels
+else:
+    # Load our object class names from json
+    with open("object_labels.json", "r") as f:
+        object_labels = json.load(f)
+    print(f'All object labels are: \n{object_labels}', end='\n\n')
 
-# Merge labels
-labels = imagenet_labels.copy()
-for key, values in object_labels.items():
-    for value in values:
-        labels.append(value)
+    # Merge labels
+    labels = imagenet_labels.copy()
+    for key, values in object_labels.items():
+        for value in values:
+            labels.append(value)
 
-# Removing duplicates
-length = len(labels)
-labels = list(set(labels))
-print(f'Removed {length - len(labels)} duplicate labels')
-print(f'All labels are: \n{labels}', end='\n\n')
+    # Removing duplicates
+    length = len(labels)
+    labels = list(set(labels))
+    print(f'Removed {length - len(labels)} duplicate labels')
+    print(f'All labels are: \n{labels}', end='\n\n')
 
 # Tokenize labelset using clip.tokenize:
 labelset = torch.cat([clip.tokenize(f"a photo of a {label}") for label in labels]).to(device)
@@ -57,13 +76,10 @@ def embed_image(image_path):
 # Main loop
 fitted_labels = {}
 
-# Version that works for coil and our own data ::: Just choose which dataset you want to fit
-coil = 'Data/coil20/rot'
-dataset = 'Data/Dataset/rot'
-
-obj_iterable = os.listdir(dataset) # <- Change the dataset here
+# Get prediction scores and the ground truth label
+obj_iterable = os.listdir(current_dataset)
 for obj_name in tqdm(obj_iterable):
-    image_folder = Path(f"{dataset}/{obj_name}/").resolve()
+    image_folder = Path(f"{current_dataset}/{obj_name}/").resolve()
     images = os.listdir(image_folder)
 
     predictions = []
@@ -88,15 +104,6 @@ for obj_name, most_common_label in fitted_labels.items():
 print() # Empty space at end
 
 # Saving the fitted labels
-labels = list(fitted_labels.values())
-imagenet_labels = [lbl for lbl in imagenet_labels if lbl not in labels]
-merged_labels = imagenet_labels + labels
-merged_labels = list(set(merged_labels))
-
-label_to_index = {label: idx for idx, label in enumerate(merged_labels)}
-print(f'Label dataset:\n{label_to_index}', end='\n\n',)
-
-# Save the fitted labes
-with open('Data/Dataset/labels.json', 'w') as f:
-    f.write(json.dumps(label_to_index, indent=4))
-print('Successively saved label dataset to "Data/Dataset/labels.json"!')
+with open(f'Data/Dataset/GJ_labels_{current_dataset.split('/')[1]}.json', 'w') as f:
+    f.write(json.dumps(fitted_labels, indent=4))
+print(f'Successively saved label dataset to "Data/Dataset/GJ_labels_{current_dataset.split('/')[1]}.json"!')
