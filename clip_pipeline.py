@@ -1,0 +1,172 @@
+from PIL import Image
+import numpy as np
+from loadData import loadDataset
+from rembg import remove
+import os
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor
+import sys
+
+
+def __remove(img):
+    img_no_bg = remove(img)
+    np_img = np.array(img_no_bg)
+    mask = np_img[:, :, 3] > 100  # Alpha channel
+    return np_img, mask
+
+
+def process_images(imgs, margin_ratio=0.1, output_size=None):
+    """
+    Processes a list of PIL images to crop all to a common bounding box (with margin),
+    and return square images with a consistent background color.
+
+    Args:
+        imgs (list of PIL.Image): List of input images containing a single object each.
+        margin_ratio (float): Fraction of the object size to use as margin (default is 10%).
+        output_size (int): Optional; if provided, resizes the final images to this size.
+
+    Returns:
+        list of PIL.Image: List of processed, square, centered images.
+    """
+
+    masks = []
+    np_imgs = []
+
+    with ThreadPoolExecutor() as executor:
+        results = list(tqdm(executor.map(__remove, imgs), total=len(imgs), desc="Removing background"))
+    
+    for np_img, mask in results:
+        np_imgs.append(np_img)
+        masks.append(mask)
+
+    # Find combined bounding box over all masks
+    all_coords = np.concatenate([np.argwhere(mask) for mask in masks], axis=0)
+    y0, x0 = all_coords.min(axis=0)
+    y1, x1 = all_coords.max(axis=0) + 1
+
+    # Calculate margin in pixels (based on combined bbox)
+    height = y1 - y0
+    width = x1 - x0
+    margin_y = int(margin_ratio * height)
+    margin_x = int(margin_ratio * width)
+
+    # Expand bounding box with margin
+    y0 = y0 - margin_y
+    y1 = y1 + margin_y
+    x0 = x0 - margin_x
+    x1 = x1 + margin_x
+
+    # Make the crop square
+    crop_height = y1 - y0
+    crop_width = x1 - x0
+    if crop_height > crop_width:
+        diff = crop_height - crop_width
+        x0 -= diff // 2
+        x1 += diff - diff // 2
+    elif crop_width > crop_height:
+        diff = crop_width - crop_height
+        y0 -= diff // 2
+        y1 += diff - diff // 2
+
+    # Calculate mean brightness for all visible pixels in all images
+    all_visible_pixels = []
+    for np_img, mask in zip(np_imgs, masks):
+        rgb = np_img[:, :, :3]
+        all_visible_pixels.append(rgb[mask])
+    all_visible_pixels = np.concatenate(all_visible_pixels, axis=0)
+    object_brightness = np.mean(all_visible_pixels)
+
+    if object_brightness > 127:
+        bg_color = (0, 0, 0, 255)
+    else:
+        bg_color = (255, 255, 255, 255)
+
+    results = []
+    for np_img, mask in tqdm(zip(np_imgs, masks), desc="Cropping and resizing images"):
+        # Calculate padding if crop goes out of bounds
+        y0_pad = max(0, -y0)
+        x0_pad = max(0, -x0)
+        y1_pad = max(0, y1 - np_img.shape[0])
+        x1_pad = max(0, x1 - np_img.shape[1])
+
+        # Crop (may be out of bounds)
+        cropped_img = np_img[max(0, y0):min(np_img.shape[0], y1), max(0, x0):min(np_img.shape[1], x1)]
+        cropped_mask = mask[max(0, y0):min(mask.shape[0], y1), max(0, x0):min(mask.shape[1], x1)]
+
+        # Pad if needed
+        if any([y0_pad, y1_pad, x0_pad, x1_pad]):
+            cropped_img = np.pad(
+                cropped_img,
+                ((y0_pad, y1_pad), (x0_pad, x1_pad), (0, 0)),
+                mode='constant',
+                constant_values=0
+            )
+            cropped_mask = np.pad(
+                cropped_mask,
+                ((y0_pad, y1_pad), (x0_pad, x1_pad)),
+                mode='constant',
+                constant_values=0
+            )
+
+        # Set background color
+        background = np.zeros_like(cropped_img, dtype=np.uint8)
+        background[~cropped_mask] = bg_color
+        output = np.where(cropped_mask[..., None], cropped_img, background)
+
+        out_img = Image.fromarray(output)
+        if output_size is not None:
+            out_img = out_img.resize((output_size, output_size), Image.LANCZOS)
+        results.append(out_img)
+
+    return results
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    data = loadDataset("Data/Dataset")
+
+    def process_and_save(obj, imgs, path, name_fn):
+        processed_imgs = process_images(imgs)
+        for i, processed_img in enumerate(processed_imgs):
+            save_path = os.path.join(path, obj, name_fn(i))
+            processed_img.save(save_path)
+
+        for img in imgs:
+            img.close()
+        for img in processed_imgs:
+            img.close()
+
+    def ensure_dir(obj, path):
+        obj_path = os.path.join(path, obj)
+        os.makedirs(obj_path, exist_ok=True)
+
+    # Get object name from command line argument, or process all if not provided
+    obj_args = sys.argv[1:] if len(sys.argv) > 1 else None
+
+    rot = data["rot"]
+    rot_path = "Data/processed/rot"
+    objs = obj_args if obj_args else list(rot.keys())
+    for obj in tqdm(objs, desc="Processing rotation images"):
+        if obj not in rot:
+            print(f"Object '{obj}' not found in rotation data.")
+            continue
+        ensure_dir(obj, rot_path)
+        imgs = rot[obj]
+        process_and_save(obj, imgs, rot_path, lambda x: f"{x*5}.png")
+
+    temp = data["temp"]
+    temp_path = "Data/processed/temp"
+    objs = obj_args if obj_args else list(temp.keys())
+    for obj in tqdm(objs, desc="Processing temperature images"):
+        if obj not in temp:
+            print(f"Object '{obj}' not found in temperature data.")
+            continue
+        ensure_dir(obj, temp_path)
+        imgs = temp[obj]
+        process_and_save(obj, imgs, temp_path, lambda x: f"{x*100+2000}.png")
+        for img in imgs:
+            img.close()
