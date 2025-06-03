@@ -88,7 +88,6 @@ for obj_name, most_common_label in fitted_labels.items():
 print() # Empty space at end
 
 # Saving the fitted labels
-object_list = list(fitted_labels.keys())
 labels = list(fitted_labels.values())
 imagenet_labels = [lbl for lbl in imagenet_labels if lbl not in labels]
 merged_labels = imagenet_labels + labels
@@ -98,6 +97,6 @@ label_to_index = {label: idx for idx, label in enumerate(merged_labels)}
 print(f'Label dataset:\n{label_to_index}', end='\n\n',)
 
 # Save the fitted labes
-with open('Data/Dataset/labels.txt', 'w') as f:
-    f.write(json.dumps(label_to_index))
-print('Successively saved label dataset to "Data/Dataset/labels.txt"!')
+with open('Data/Dataset/labels.json', 'w') as f:
+    f.write(json.dumps(label_to_index, indent=4))
+print('Successively saved label dataset to "Data/Dataset/labels.json"!')
