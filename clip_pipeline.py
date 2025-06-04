@@ -10,6 +10,7 @@ from geometry_metrics import compute_spectral_entropy, cosine_similarity_matrix
 import torch
 import clip
 import json
+import ast
 
 
 class CLIPModel():
@@ -286,19 +287,39 @@ if __name__ == "__main__":
         dataset = loadDataset(f"Data/{set}")
         path = f"Embeddings/{set}.json"
         dataset_to_embed_json(model, dataset, path)
-    
 
-    """ simple usage example
 
+    # - - - simple usage example - - -
+    """  
     from clip_pipeline import CLIPModel, dataset_to_embed_json
 
     model = CLIPModel(verbose=True)
     dataset = loadDataset("Data/my_dataset")
     dataset_to_embed_json(model, dataset, "Embeddings/my_dataset.json")
-    
     """
 
+    with open("object_labels.json", "r") as f:
+        object_labels = json.load(f)
+    
+    labels = []
+    for label_list in object_labels.values():
+        for label in label_list:
+            labels.append(label)
 
+    with open("Imagenet_classes.txt", "r") as f:
+        data = f.read()
+    parsed_dict = ast.literal_eval(data)
+    dict_values = list(parsed_dict.values())
+    Imagenet_classes = [label.strip() for name in dict_values for label in name.split(',')]
+
+    labels = list(set(labels + Imagenet_classes))
+
+
+    path = f"Embeddings/labels.json"
+    embeddings = model.embed_batch(labels)
+    embeddings_dict = {label: embedding.tolist() for label, embedding in zip(labels, embeddings)}
+    with open(path, "w") as f:
+        json.dump(embeddings_dict, f, indent=4)
 
 
 
