@@ -13,7 +13,7 @@ from loadData import loadDataset
 
 
 # Version that works for coil and our own data
-datasets = {"coil20": {}, "Dataset": {}, "coil100": {}}
+datasets = {"coil20": {}, "Dataset": {}, "processed": {}, "coil100": {}}
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -32,9 +32,18 @@ with open("object_labels.json", "r") as f:
     object_labels = json.load(f)
 print(f'All object labels are: \n{object_labels}', end='\n\n')
 datasets["Dataset"] = object_labels
+datasets["processed"] = object_labels
+
+
+# Load coil100 object class names from json
+with open("COIL100_GPT_labels.json", "r") as f:
+    object_labels_coil100 = json.load(f)
+print(f'All coil100 object labels are: \n{object_labels_coil100}', end='\n\n')
+datasets["coil100"] = object_labels_coil100
+
 
 for dataset, label in datasets.items():
-    print(f'Currently running on {dataset}', end='\n\n')
+    print(f'Currently running on {dataset}')
 
     current_dataset = f'Data/{dataset}/rot'
 
@@ -95,4 +104,4 @@ for dataset, label in datasets.items():
     # Saving the fitted labels
     with open(f'Data/{dataset}/GT_labels_{dataset}.json', 'w') as f:
         f.write(json.dumps(fitted_labels, indent=4))
-    print(f'Successively saved label {dataset} to "Data/{dataset}/GT_labels_{dataset}.json"!')
+    print(f'Successively saved label {dataset} to "Data/{dataset}/GT_labels_{dataset}.json"!', end='\n\n')
