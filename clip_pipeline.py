@@ -202,6 +202,27 @@ def process_images(imgs, margin_ratio=0.1, output_size=None):
     return results
 
 
+def dataset_to_embed_json(model, dataset, path):
+    """
+    Converts a dataset dictionary to a JSON file with embeddings and saves it.
+    The key is defined as path_to_image from path/to/image.png, example:
+    dataset["rot"]["rubber_duck"][35] = rot_rubber_duck_35
+    Args:
+        data (dict): The dataset dictionary to save.
+        path (str): The file path where the JSON will be saved.
+    """
+
+    data = {}
+    for intervention in dataset.keys():
+        for obj in tqdm(dataset[intervention].keys(), desc=f"Processing {intervention} objects", disable=not model.verbose):
+            embeddings = model.embed_batch(dataset[intervention][obj])
+            for i, embedding in enumerate(embeddings):
+                key = f"{intervention}_{obj}_{i*5 if intervention == 'rot' else i*100 + 2000}"
+                data[key] = embedding.tolist()
+
+    with open(path, "w") as f:
+        json.dump(data, f, indent=4)
+
 
 
 if __name__ == "__main__":
@@ -253,10 +274,17 @@ if __name__ == "__main__":
 
     """
 
-    model = CLIPModel()
+    model = CLIPModel(verbose=True)
+    model.verbose = False # Disable tqdm for embedding
 
-    data = loadDataset("Data/coil20_rot")
+    path = "Embeddings"
+    os.makedirs(path, exist_ok=True)
+
+    dataset = loadDataset("Data/coil20")
+    path = "Embeddings/coil20.json"
+    dataset_to_embed_json(model, dataset, path)
 
 
 
-    
+
+
