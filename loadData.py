@@ -6,14 +6,20 @@ def _is_image_file(filename):
     return filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))
 
 def _extract_image_index(filename):
-    """Extract number after '__' in filenames like obj1__5.png"""
-    match = re.search(r'__(\d+)', filename)
+    """
+    Extract number before '.':
+
+    in filenames like obj1__5.png, 10.jpg, temperature_4300.jpeg, etc.
+    the number before the extension is considered the indexing value. (5,10,4300)
+    This way we can sort images in a list automatically.
+    """
+    match = re.search(r'(\d+).', filename)
     return int(match.group(1)) if match else float('inf')
 
 def _load_folder(path):
     """
-    Recursively loads the folder into a nested dictionary.
-    - Subfolders become dict keys
+    Recursively loads the directory into a nested dictionary.
+    - Subdirs become dict keys
     - Image files are loaded as a list of PIL Image objects, sorted by index
     """
     entries = os.listdir(path)
@@ -48,14 +54,17 @@ def loadDataset(root_path:str):
     Loads all top-level dataset dirs under root_path into a nested dictionary.
     Each dataset dir is expected to contain subdirs for objects, and each object dir may contain images.
     The images are loaded as PIL Image objects, and the subdirs are loaded recursively.
-    The function returns a dictionary where keys are dataset names and values are the loaded Images.
+    The function returns a dictionary where keys are directory/dataset names and values are the loaded Images.
     If a dir contains both images and subdirs, the images are stored under the key "_images".
+
+    The images are sorted by the number before the file extension in their names.
+    This allows for automatic sorting of images in a list.
 
 
     Args:
         root_path (str): Path to the root dir containing dataset dirs.
     Returns:
-        datasets (dict): A dictionary where keys are dataset names and values are the loaded datasets.
+        datasets (dict): A dictionary where keys are directory names and values are the loaded PIL.Image objects.
     
     Example:
     >>> root_path = 'Data'
