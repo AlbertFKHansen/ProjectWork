@@ -13,7 +13,7 @@ from loadData import loadDataset
 
 
 # Version that works for coil and our own data
-datasets = {"coil20": {}, "Dataset": {}}
+datasets = {"coil20": {}, "Dataset": {}, "coil100": {}}
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
