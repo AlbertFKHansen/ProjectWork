@@ -93,6 +93,6 @@ for dataset, label in datasets.items():
     print() # Empty space at end
 
     # Saving the fitted labels
-    with open(f'Data/{dataset}/GJ_labels_{dataset}.json', 'w') as f:
+    with open(f'Data/{dataset}/GT_labels_{dataset}.json', 'w') as f:
         f.write(json.dumps(fitted_labels, indent=4))
-    print(f'Successively saved label {dataset} to "Data/{dataset}/GJ_labels_{dataset}.json"!')
+    print(f'Successively saved label {dataset} to "Data/{dataset}/GT_labels_{dataset}.json"!')
