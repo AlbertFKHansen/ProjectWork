@@ -6,6 +6,88 @@ import os
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 import sys
+from geometry_metrics import compute_spectral_entropy, cosine_similarity_matrix
+import torch
+import clip
+import json
+
+
+class CLIPModel():
+    def __init__(self, name="ViT-L/14@336px", verbose=False):
+        """
+        Initializes the CLIP model with the specified name and device.
+        Args:
+            name (str): The name of the CLIP model to load. Default is "ViT-L/14@336px".
+            verbose (bool): If True, prints the device being used and tqdm progress bars.
+        """
+        self.verbose = verbose
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        if verbose:
+            print(f"Using device: {torch.cuda.get_device_name(0)}") if self.device != "cpu" else print("Using CPU")
+        self.model, self.preprocess = clip.load(name, self.device)
+
+    def _embed_image(self, image):
+        """
+        processes a PIL image and returns its normalized CLIP embedding as a numpy f32 array.
+        Args:
+            image (PIL.Image): The image to embed.
+        Returns:
+            np.ndarray: A numpy array of shape (1, 512) containing the normalized CLIP embedding.
+        """
+        image_input = self.preprocess(image).unsqueeze(0).to(self.device)
+        with torch.no_grad():
+            image_features = self.model.encode_image(image_input)
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+        return image_features.cpu().numpy().astype(np.float32)
+    
+    def _embed_label(self, label):
+        """
+        processes "a photo of a {label}." and returns its normalized CLIP embedding as a numpy f32 array.
+        Args:
+            label (str): The label to embed, e.g., "cat", "dog", etc.
+        Returns:
+            np.ndarray: A numpy array of shape (1, 512) containing the normalized CLIP embedding.
+        """
+        text_input = clip.tokenize([f"a photo of a {label}."]).to(self.device)
+        with torch.no_grad():
+            text_features = self.model.encode_text(text_input)
+        text_features /= text_features.norm(dim=-1, keepdim=True)
+        return text_features.cpu().numpy().astype(np.float32)
+    
+    def embed(self, item):
+        """
+        Embeds an item, which can be a PIL image or a label string.
+        Returns the normalized CLIP embedding as a numpy f32 array.
+        Args:
+            item (PIL.Image or str): The item to embed. If a PIL Image, it will be processed as an image.
+                                    If a string, it will be processed as a label.
+        Returns:
+            np.ndarray: A numpy array of shape (1, 512) containing the normalized CLIP embedding.
+        """
+        if isinstance(item, Image.Image):
+            return self._embed_image(item)
+        elif isinstance(item, str):
+            return self._embed_label(item)
+        else:
+            raise ValueError("Item must be a PIL Image or a label string.")
+        
+    
+    def embed_batch(self, items):
+        """
+        Embeds a batch of items, which can be a list of PIL images or label strings.
+        Returns a numpy array of normalized CLIP embeddings.
+        Args:
+            items (list): A list of items to embed, where each item can be a PIL Image or a label string.
+        Returns:
+            np.ndarray: A 2D numpy array where each row is the normalized CLIP embedding of an item.
+        """
+        embeddings = []
+        for item in tqdm(items, desc="Embedding items", disable=not self.verbose):
+            embeddings.append(self.embed(item))
+        return np.vstack(embeddings)
+
+
+
 
 
 def __remove(img):
@@ -13,7 +95,6 @@ def __remove(img):
     np_img = np.array(img_no_bg)
     mask = np_img[:, :, 3] > 100  # Alpha channel
     return np_img, mask
-
 
 def process_images(imgs, margin_ratio=0.1, output_size=None):
     """
@@ -123,10 +204,9 @@ def process_images(imgs, margin_ratio=0.1, output_size=None):
 
 
 
-
-
-
 if __name__ == "__main__":
+    """Alreaddy done. keeping here for reference.
+
     data = loadDataset("Data/Dataset")
 
     def process_and_save(obj, imgs, path, name_fn):
@@ -170,3 +250,13 @@ if __name__ == "__main__":
         process_and_save(obj, imgs, temp_path, lambda x: f"{x*100+2000}.png")
         for img in imgs:
             img.close()
+
+    """
+
+    model = CLIPModel()
+
+    data = loadDataset("Data/coil20_rot")
+
+
+
+    
