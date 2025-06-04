@@ -1,0 +1,19 @@
+{
+    "battery": "GP battery",
+    "charger": "wall power adapter",
+    "combination_lock": "combination lock",
+    "controller": "playstation controller",
+    "cup_no_handle": "stoneware tumbler",
+    "cup_with_handle": "stoneware coffee mug",
+    "duct_tape": "grey adhesive tape",
+    "faxe_kondi": "Faxe Kondi",
+    "lego_brick": "lego brick",
+    "lego_man": "lego minifigure",
+    "light_bulb": "electric bulb",
+    "rubber_duck": "plastic duck",
+    "rubiks_cube": "3x3 cube puzzle",
+    "sun_glasses": "dark sunglasses",
+    "thermo_cup": "metal coffee tumbler",
+    "toy_car": "small grey toy car",
+    "wrist_watch": "black wristwatch"
+}
