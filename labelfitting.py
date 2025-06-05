@@ -98,7 +98,7 @@ for dataset, label in datasets.items():
     print() # Empty space at end
 
     # Saving the fitted labels for each object
-    with open(f'Data/{dataset}/GT_labels_{dataset}.json', 'w') as f:
+    with open(f'Data/{dataset}/GT_labels.json', 'w') as f:
         f.write(json.dumps(fitted_labels, indent=4))
     print(f'Successively saved label {dataset} to "Data/{dataset}/GT_labels_{dataset}.json"!')
 
@@ -106,7 +106,8 @@ for dataset, label in datasets.items():
     label_dataset = imagenet_labels.copy()
     for label in fitted_labels.values():
         label_dataset.append(label) if label not in label_dataset else None
+    label_dict = {label: id for id, label in enumerate(label_dataset)}
 
     with open(f'Data/{dataset}/labels.json', 'w') as f:
-        f.write(json.dumps(label_dataset, indent=4))
+        f.write(json.dumps(label_dict, indent=4))
     print(f'Successively saved label dataset {dataset} to "Data/{dataset}/labels.json"!', end='\n\n')
