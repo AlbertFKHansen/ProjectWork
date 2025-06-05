@@ -22,37 +22,45 @@ def encode_labelset(labels, model, device, batch_size=128):
     return torch.cat(features, dim=0)
 
 def compute_entropies(image_features, text_features, idx, temperature=1):
+
     image_features = torch.tensor(image_features).to(text_features.device)
     image_features /= image_features.norm(dim=-1, keepdim=True)
+
+    print(image_features.shape, text_features.shape)
     logits = (image_features @ text_features.T) * 100 / temperature
+    print("Logits shape:", logits.shape)
     probs = F.softmax(logits, dim=1)
     density = float(np.mean([scipy_entropy(p) for p in probs.cpu().numpy()]))
     accuracy = probs[:, idx].mean().item()
     return accuracy, density
 
+
 def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("Loading CLIP ViT-L/14@336px...")
-    model, _ = clip.load("ViT-L/14@336px", device)
+    model = clip.load("ViT-L/14@336px", jit=False, device=torch.device("cpu"))[0].to(device)
 
     with open(embedding_path, "r", encoding="utf-8") as f:
-        embedding_dict = json.load(f)
-    embedding_dict = {k: np.array(v, dtype=np.float32) for k, v in embedding_dict["rot"].items()}
+        embedding_dict = json.load(f)["rot"]
 
     with open(label_path, "r", encoding="utf-8") as f:
         label_idx_dict = json.load(f)
 
     with open(GT_path, "r", encoding="utf-8") as f:
         Dataset_to_GT = json.load(f)
-
+    
+    print(label_idx_dict.keys())
     label_names = list(label_idx_dict.keys())
     text_features = encode_labelset(label_names, model, device)
+
+    for obj in embedding_dict:
+        embedding_dict[obj] = np.array([embedding_dict[obj][key] for key in sorted(embedding_dict[obj].keys())], dtype=np.float32)
 
     results = {}
     for obj_name, label in Dataset_to_GT.items():
         idx = label_idx_dict[label]
         embeddings = embedding_dict[obj_name]
-        acc, semantic_entropy = compute_entropies(embeddings, text_features, idx)
+        acc, semantic_entropy = compute_entropies(embedding_dict[obj_name], text_features, idx)
         spectral_entropy = compute_spectral_entropy(cosine_similarity_matrix(embeddings))
         results[obj_name] = (acc, spectral_entropy, semantic_entropy)
 
