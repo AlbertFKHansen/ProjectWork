@@ -81,7 +81,7 @@ if __name__ == '__main__':
             labels = list(set(labels))
 
         # Tokenize labelset using clip.tokenize:
-        labelset = torch.cat([clip.tokenize(f"a photo of a {label}") for label in labels]).to(device)
+        labelset = torch.cat([clip.tokenize(f"a photo of a {label}.") for label in labels]).to(device)
 
         # Encode labelset embedding vectors
         with torch.no_grad():
