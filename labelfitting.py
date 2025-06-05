@@ -25,9 +25,10 @@ def save_labels(dataset_name: str, fit_labels: dict, base_labels: list):
     print(f'Successively saved label {dataset_name} to "Data/{dataset_name}/GT_labels.json"!')
 
     # Saving the fitted labels as a complete label dataset
-    base_labels = base_labels.copy()
-    for label in fitted_labels.values():
-        base_labels.append(label) if label not in base_labels else None
+
+
+    base_labels = base_labels + list(fitted_labels.values())
+    base_labels = list(set(base_labels))
     label_dict = {label: id for id, label in enumerate(base_labels)}
 
     with open(f'Data/{dataset_name}/labels.json', 'w') as f:
