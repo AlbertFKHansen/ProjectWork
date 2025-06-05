@@ -2,15 +2,11 @@ import os
 import ast
 import torch
 import clip
-import numpy as np
 from PIL import Image
 from pathlib import Path
 from collections import Counter
 from tqdm import tqdm
 import json
-import glob
-from loadData import loadDataset
-
 
 # Version that works for coil and our own data
 datasets = {"coil20": {}, "Dataset": {}, "processed": {}, "coil100": {}}
@@ -101,7 +97,16 @@ for dataset, label in datasets.items():
         print(f'{obj_name:<20} | {most_common_label}')
     print() # Empty space at end
 
-    # Saving the fitted labels
+    # Saving the fitted labels for each object
     with open(f'Data/{dataset}/GT_labels_{dataset}.json', 'w') as f:
         f.write(json.dumps(fitted_labels, indent=4))
-    print(f'Successively saved label {dataset} to "Data/{dataset}/GT_labels_{dataset}.json"!', end='\n\n')
+    print(f'Successively saved label {dataset} to "Data/{dataset}/GT_labels_{dataset}.json"!')
+
+    # Saving the fitted labels as a complete label dataset
+    label_dataset = imagenet_labels.copy()
+    for label in fitted_labels.values():
+        label_dataset.append(label) if label not in label_dataset else None
+
+    with open(f'Data/{dataset}/labels.json', 'w') as f:
+        f.write(json.dumps(label_dataset, indent=4))
+    print(f'Successively saved label dataset {dataset} to "Data/{dataset}/labels.json"!', end='\n\n')
