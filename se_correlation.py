@@ -1,10 +1,13 @@
 import torch
-import clip
-import json
-import numpy as np
 import torch.nn.functional as F
-import matplotlib.pyplot as plt
+import clip
 from tqdm import tqdm
+
+import numpy as np
+import json
+import pandas as pd
+
+import matplotlib.pyplot as plt
 from scipy.stats import entropy as scipy_entropy
 from geometry_metrics import compute_spectral_entropy, cosine_similarity_matrix
 
@@ -22,22 +25,44 @@ def encode_labelset(labels, model, device, batch_size=128):
     return torch.cat(features, dim=0)
 
 def compute_entropies(image_features, text_features, idx, temperature=1):
+    """
+    Function to compute single or multuple embedding accuracy and semantic entropy.
 
+    Args:
+        image_features: n x m array for n image embeddings with dimension m 
+        text_features: n x m array for n text embeddings with dimension m 
+        idx: Ground truth index of the object you are evaluating
+        temperature: Modifyable temperature, defaults to 100.
+    Returns:
+        accuracy: mean accuracy for multiple images/single accuracy for one
+        density: mean of Semantic Density for multiple images/single density for one
+    """
     image_features = torch.tensor(image_features).to(text_features.device)
     image_features /= image_features.norm(dim=-1, keepdim=True)
 
-    print(image_features.shape, text_features.shape)
     logits = (image_features @ text_features.T) * 100 / temperature
-    print("Logits shape:", logits.shape)
     probs = F.softmax(logits, dim=1)
     density = float(np.mean([scipy_entropy(p) for p in probs.cpu().numpy()]))
     accuracy = probs[:, idx].mean().item()
+    top_preds = torch.argmax(probs, dim=1)
     return accuracy, density
 
-
 def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
+    """
+    Loads embedding and labelset dictionaries to perform correlation analysis.
+    Saves a CSV to use with R/Statistical analysis. Optional scatterplot.
+
+    Args:
+        embedding_path: String to path of object embeddings json
+        label_path: String to the labelset json
+        GT_path: String to json with object_name to ground truth, key: value pairs.
+    Returns:
+        Dictionary with accuracies, spectral and semantic density entropies. 
+
+    """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("Loading CLIP ViT-L/14@336px...")
+    #Force the model to use float32:
     model = clip.load("ViT-L/14@336px", jit=False, device=torch.device("cpu"))[0].to(device)
 
     with open(embedding_path, "r", encoding="utf-8") as f:
@@ -49,7 +74,6 @@ def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
     with open(GT_path, "r", encoding="utf-8") as f:
         Dataset_to_GT = json.load(f)
     
-    print(label_idx_dict.keys())
     label_names = list(label_idx_dict.keys())
     text_features = encode_labelset(label_names, model, device)
 
@@ -65,6 +89,15 @@ def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
         results[obj_name] = (acc, spectral_entropy, semantic_entropy)
 
     print("Analysis Complete")
+
+    df = pd.DataFrame({
+        "object": list(results.keys()),
+        "accuracy": [v[0] for v in results.values()],
+        "spectral_entropy": [v[1] for v in results.values()],
+        "semantic_density": [v[2] for v in results.values()]
+    })
+
+    df.to_csv("entropy_analysis_coil100TEST.csv", index=False)
 
     if plot:
         objs = list(results.keys())
@@ -87,6 +120,7 @@ def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
     return results
 
 if __name__ == "__main__":
+    #Usage example:
     Dataset = "coil100" 
     embedding_path = f"Embeddings/{Dataset}.json"
     label_path = f"Data/{Dataset}/labels.json"
