@@ -1,8 +1,28 @@
+from clip_pipeline import process_images
+from loadData import loadDataset
 import os
-from pathlib import Path
-from PIL import Image
-from rembg import remove
 
+"""
+This script is made to generate the thumbnails for a table in the report.
+"""
+data = loadDataset("Data/Dataset/rot")
+
+for obj in data.keys():
+    # use all 72 images to generate the correct bounding box
+    processed = process_images(data[obj][:], output_size=100) # downscaling in report to 100x100px
+
+    # saving firrst image as thumbnail
+    thumbnail_path = os.path.join("Thumbnails", f"{obj}_thumbnail.png")
+    processed[0].save(thumbnail_path, "PNG")
+
+    # close the images to free up resources
+    for img in processed:
+        img.close()
+    for img in data[obj]:
+        img.close()
+
+
+"""
 base_path = Path("Data/Dataset/rot")
 output_dir = Path("Data/Dataset/Thumbnails")
 output_dir.mkdir(exist_ok=True)
@@ -49,3 +69,4 @@ for obj_folder in sorted(base_path.iterdir()):
 
         else:
             print("Error: Missing filename for one or more images!")
+"""
