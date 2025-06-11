@@ -115,7 +115,38 @@ pcor_result <- pcor.test(df$semantic_density, df$spectral_entropy, df$accuracy, 
 print(pcor_result)
 
 
+### ------------------------------------------- ###
 
+# Small test for difference in Spectral Entropies
+
+processed <- c(
+  0.7097, 0.6841, 0.5421, 0.5387, 0.5178, 0.5080, 0.4675, 0.4308, 0.4288,
+  0.3807, 0.3736, 0.2472, 0.2294, 0.1810, 0.1747, 0.0732, 0.0352
+)
+
+non_processed <- c(
+  0.7088, 0.6837, 0.5609, 0.5605, 0.5109, 0.2571, 0.5460, 0.2852, 0.3604,
+  0.4321, 0.3381, 0.1975, 0.2562, 0.1923, 0.1485, 0.0849, 0.0405
+)
+
+diffs <- processed - non_processed
+
+# 3. Normality test
+shapiro.test(diffs)
+
+# We reject normality
+# Plots for good measure, clearly we lack enough points to draw conclusions.
+
+hist(diffs, main = "Histogram of Differences",
+     xlab = "Processed - Non-processed", col = "skyblue", border = "white")
+
+qqnorm(diffs)
+qqline(diffs, col = "red", lwd = 2)
+
+# 6. Paired Wilcoxon signed-rank test
+wilcox.test(processed, non_processed, paired = TRUE)
+
+# No difference in proportion p-value = 0.6777
 
 
 
