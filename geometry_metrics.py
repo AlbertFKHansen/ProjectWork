@@ -58,6 +58,7 @@ def calculate_angles(points: np.ndarray) -> Tuple[List[float], List[float]]:
 
         angle_deg = np.degrees(np.arccos(cos_theta))
         smallest_angle = min(angle_deg, 360 - angle_deg)
+        smallest_angle = 180 - smallest_angle
         angles.append(smallest_angle)
 
     return angles, lengths
