@@ -8,15 +8,22 @@ import clip
 def get_image_embeddings(dataset_name: str) -> dict[str, dict[str, list]]:
     """
     Args:
-        dataset_name: Name of the dataset path. Could be "coil100"
+        dataset_name: Name of the dataset path. Could be "coil100", "Dataset", or "combined"
 
     Returns:
         Dictionary of the "rot" json
-
     """
-    with open(f'Embeddings/{dataset_name}.json', 'r', encoding='utf-8') as f:
-        embeddings = json.load(f)
-    return embeddings['rot']
+    if dataset_name == "combined":
+        with open(f'Embeddings/coil100.json', 'r', encoding='utf-8') as f:
+            embeddings_coil = json.load(f)['rot']
+        with open(f'Embeddings/Dataset.json', 'r', encoding='utf-8') as f:
+            embeddings_dataset = json.load(f)['rot']
+        merged = {**embeddings_coil, **embeddings_dataset}
+        return merged
+    else:
+        with open(f'Embeddings/{dataset_name}.json', 'r', encoding='utf-8') as f:
+            embeddings = json.load(f)
+        return embeddings['rot']
 
 def save_labels(dataset_name: str, fit_labels: dict, base_labels: list):
     # Saving the fitted labels for each object
@@ -38,7 +45,7 @@ def save_labels(dataset_name: str, fit_labels: dict, base_labels: list):
 
 if __name__ == '__main__':
     # Version that works for coil and our own data
-    datasets = {"coil20": {}, "Dataset": {}, "processed": {}, "coil100": {}}
+    datasets = {"coil20": {}, "Dataset": {}, "processed": {}, "coil100": {}, "combined": {}}
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f'Model is running on {device}', end='\n\n')
@@ -68,7 +75,15 @@ if __name__ == '__main__':
     print(f'All coil100 object labels are: \n{object_labels_coil100}', end='\n\n')
     datasets["coil100"] = object_labels_coil100
 
-
+    # Add combined label set (merge Dataset + COIL100)
+    combined_labels = {}
+    combined_labels.update(object_labels)
+    for k, v in object_labels_coil100.items():
+        if k not in combined_labels:
+            combined_labels[k] = v
+        else:
+            combined_labels[k].extend(v)
+    datasets["combined"] = combined_labels
 
     for dataset, label in datasets.items():
         print(f'Currently running on {dataset}')
