@@ -42,9 +42,10 @@ def compute_entropies(image_features, text_features, idx, temperature=1):
 
     logits = (image_features @ text_features.T) * 100 / temperature
     probs = F.softmax(logits, dim=1)
-    density = float(np.mean([scipy_entropy(p) for p in probs.cpu().numpy()]))
+    density_values = [float(scipy_entropy(p)) for p in probs.cpu().numpy()]
+    density = float(np.mean(density_values))
     accuracy = probs[:, idx].mean().item()
-    top_preds = torch.argmax(probs, dim=1)
+    #top_preds = torch.argmax(probs, dim=1)
     return accuracy, density
 
 def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
@@ -121,7 +122,7 @@ def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
 
 if __name__ == "__main__":
     #Usage example:
-    Dataset = "coil100" 
+    Dataset = "dataset" 
     embedding_path = f"Embeddings/{Dataset}.json"
     label_path = f"Data/{Dataset}/labels.json"
     GT_path = f"Data/{Dataset}/GT_labels.json"
