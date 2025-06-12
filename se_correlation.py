@@ -10,6 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import entropy as scipy_entropy
 from geometry_metrics import compute_spectral_entropy, cosine_similarity_matrix
+from labelfitting import get_image_embeddings
 
 def encode_labelset(labels, model, device, batch_size=128):
     tokens = [clip.tokenize(f"a photo of a {label}.") for label in labels]
@@ -66,8 +67,7 @@ def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
     #Force the model to use float32:
     model = clip.load("ViT-L/14@336px", jit=False, device=torch.device("cpu"))[0].to(device)
 
-    with open(embedding_path, "r", encoding="utf-8") as f:
-        embedding_dict = json.load(f)["rot"]
+    embedding_dict = get_image_embeddings(Dataset)
 
     with open(label_path, "r", encoding="utf-8") as f:
         label_idx_dict = json.load(f)
@@ -98,7 +98,7 @@ def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
         "semantic_density": [v[2] for v in results.values()]
     })
 
-    df.to_csv("entropy_analysis_coil100TEST.csv", index=False)
+    df.to_csv("entropy_analysis.csv", index=False)
 
     if plot:
         objs = list(results.keys())
@@ -122,7 +122,7 @@ def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
 
 if __name__ == "__main__":
     #Usage example:
-    Dataset = "dataset" 
+    Dataset = "combined" 
     embedding_path = f"Embeddings/{Dataset}.json"
     label_path = f"Data/{Dataset}/labels.json"
     GT_path = f"Data/{Dataset}/GT_labels.json"
