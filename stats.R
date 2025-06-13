@@ -147,10 +147,53 @@ wilcox.test(processed, non_processed, paired = TRUE)
 # No difference in proportion p-value = 0.6777
 
 
+### CIFAR TEST
 
 
 
+df <- read.csv("cifartest.csv")
+model <- lm(accuracy ~ semantic_density, data = df)
+summary(model)
 
+# Extract residuals
+res <- residuals(model)
+
+# Print first few residuals
+print("Residuals:")
+print(head(res))
+
+# Shapiro-Wilk Normality Test
+print("Shapiro-Wilk Normality Test:")
+shapiro.test(res)
+
+
+# Plots of residuals
+# Q-Q plot 
+print("Q-Q Plot:")
+qqnorm(res)
+qqline(res, col = "red")
+
+
+model <- lm(accuracy ~ (semantic_density), data = df)
+res <- residuals(model)
+shapiro.test(res)
+print("Q-Q Plot:")
+qqnorm(res)
+qqline(res, col = "red")
+
+hist(res,
+     breaks = 20,
+     col = "lightblue",
+     main = "Histogram of Model Residuals",
+     xlab = "Residuals",
+     ylab = "Frequency",
+     border = "black")
+
+
+cor.test(df$accuracy,df$semantic_density, method = "spearman")
+
+mean(df$accuracy)
+mean(df$semantic_density)
 
 
 

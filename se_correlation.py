@@ -46,8 +46,9 @@ def compute_entropies(image_features, text_features, idx, temperature=1):
     density_values = [float(scipy_entropy(p)) for p in probs.cpu().numpy()]
     density = float(np.mean(density_values))
     accuracy = probs[:, idx].mean().item()
-    #top_preds = torch.argmax(probs, dim=1)
-    return accuracy, density
+    top_preds = torch.argmax(probs, dim=1)
+    bin_accuracy = (top_preds == idx).float().mean().item()
+    return accuracy, density, bin_accuracy
 
 def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
     """
@@ -85,7 +86,7 @@ def analyze_embeddings(embedding_path, label_path, GT_path, plot=False):
     for obj_name, label in Dataset_to_GT.items():
         idx = label_idx_dict[label]
         embeddings = embedding_dict[obj_name]
-        acc, semantic_entropy = compute_entropies(embedding_dict[obj_name], text_features, idx)
+        acc, semantic_entropy, _ = compute_entropies(embedding_dict[obj_name], text_features, idx)
         spectral_entropy = compute_spectral_entropy(cosine_similarity_matrix(embeddings))
         results[obj_name] = (acc, spectral_entropy, semantic_entropy)
 
