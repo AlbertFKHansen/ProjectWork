@@ -3,20 +3,18 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # To install ppcor::
 install.packages("ppcor")
 
-#Should really refit labels if we do this:
-df1 <- read.csv("entropy_analysis.csv")
-df2 <- read.csv("entropy_analysis_dataset.csv")
-df <- rbind(df1, df2)
+### RUN START ###
+### To run the analysis first compute <1, then <0.65
 
-
-# Load csv
-df <- read.csv("entropy_analysis_coil100TEST.csv")
-df <- subset(df, accuracy < 0.99)  # Remove outliers
+df <- read.csv("entropy_analysis.csv")
+df <- subset(df, accuracy < 1)  # Remove outliers
 
 # Reduced models to get individual R squared:
 model_full <- lm(accuracy ~ spectral_entropy + semantic_density, data = df)
 model_reduced_entropy <- lm(accuracy ~ semantic_density, data = df)
 model_reduced_density <- lm(accuracy ~ spectral_entropy, data = df)
+
+summary(model_full)
 
 # Get R^2 Values:
 r2_full <- summary(model_full)$r.squared
