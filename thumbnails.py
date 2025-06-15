@@ -37,11 +37,16 @@ def generate_thumbnails(dataset_input, output_size):
     data = loadDataset(dataset_path)
 
     # use all images to generate the correct bounding box
-    processed = process_images(data, output_size=output_size)
+    # Process images (resize to output_size)
+    processed = []
+    for img in data:
+        thumbnail = img.copy()
+        thumbnail.thumbnail((output_size, output_size))
+        processed.append(thumbnail)
 
     # save all processed images as thumbnails
     for idx, img in enumerate(processed):
-        thumbnail_path = os.path.join(output_dir, f"{obj}_thumbnail_{idx*5 if intervention=="rot" else idx*100+2000}.png")
+        thumbnail_path = os.path.join(output_dir, f"{obj}_thumbnail_{idx*5 if intervention=='rot' else idx*100+2000}.png")
         img.save(thumbnail_path, "PNG")
         img.close()
 
