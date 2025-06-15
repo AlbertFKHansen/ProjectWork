@@ -1,72 +1,67 @@
 from clip_pipeline import process_images
 from loadData import loadDataset
 import os
+import sys
+import argparse
+from tqdm import tqdm
+
 
 """
 This script is made to generate the thumbnails for a table in the report.
+We are doing both thumbnails of the original images and the processed images.
+for rotation and temperature datasets. but im just going to do it for a reduced granularity of them.
 """
-data = loadDataset("Data/Dataset/rot")
 
-for obj in data.keys():
-    # use all 72 images to generate the correct bounding box
-    processed = process_images(data[obj][:], output_size=100) # downscaling in report to 100x100px
 
-    # saving firrst image as thumbnail
-    thumbnail_path = os.path.join("Thumbnails", f"{obj}_thumbnail.png")
-    processed[0].save(thumbnail_path, "PNG")
+# command line usage
+parser = argparse.ArgumentParser(description="Generate thumbnails for dataset images.")
+parser.add_argument("--dataset", type=str, default="Dataset",help="Path to the dataset directory")
+parser.add_argument("--output_size", type=int, default=100, help="Thumbnail output size (pixels)")
+args = parser.parse_args()
 
-    # close the images to free up resources
-    for img in processed:
+
+
+def generate_thumbnails(dataset_input, output_size):
+    """
+    Generate thumbnails for the images in the dataset.
+    Args:
+        dataset_input (str): Path to the dataset directory.
+        output_size (int): Size of the thumbnails in pixels.
+    """
+    obj = dataset_input.split("/")[-1]  # get the last part of the path as the object name
+    intervention = dataset_input.split("/")[1]  # get the second part of the path as the intervention name
+    dataset_path = f"Data/{dataset_input}"
+    output_dir = os.path.join("Thumbnails", dataset_input)
+    os.makedirs(output_dir, exist_ok=True)
+
+    data = loadDataset(dataset_path)
+
+    # use all images to generate the correct bounding box
+    processed = process_images(data, output_size=output_size)
+
+    # save all processed images as thumbnails
+    for idx, img in enumerate(processed):
+        thumbnail_path = os.path.join(output_dir, f"{obj}_thumbnail_{idx*5 if intervention=="rot" else idx*100+2000}.png")
+        img.save(thumbnail_path, "PNG")
         img.close()
-    for img in data[obj]:
+
+    # close the original images to free up resources
+    for img in data:
         img.close()
 
 
-"""
-base_path = Path("Data/Dataset/rot")
-output_dir = Path("Data/Dataset/Thumbnails")
-output_dir.mkdir(exist_ok=True)
-# Clear existing thumbnails
-for file in output_dir.glob("*"):
-    if file.is_file():
-        file.unlink()  # delete the file
+if __name__ == "__main__":
+    # run the script with command line arguments
+    args = parser.parse_args()
+    print(f"Generating thumbnails for dataset:  {args.dataset}")
+    print(f"Output size:                        {args.output_size} pixels")
 
-target_angle = 0
-crop_width = 2500
-crop_height = 1900
-
-target_filename = f"{target_angle}.png"
-for obj_folder in sorted(base_path.iterdir()):
-    if obj_folder.is_dir():
-        image_path = obj_folder / target_filename
-        if image_path.exists():
-            img = Image.open(image_path).convert("RGBA")
-            width, height = img.size
-            #print(width,height)
-            #Remove background
-            img = remove(img)
-            white_bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
-            img = Image.alpha_composite(white_bg, img)
-
-            #Rotate Image
-            img = img.rotate(2, expand=False)
-        
-            #Crop Image
-            offset = 0
-            left = (width - crop_width) // 2
-            top = ((height - crop_height) // 2) + offset
-            right = left + crop_width
-            bottom = top + crop_height - offset
-            img = img.crop((left, top, right, bottom))
-
-            max_size = (100, 100)
-            img.thumbnail(max_size, Image.LANCZOS)
-
-            #Save Image
-            thumb_name = f"{obj_folder.name}_{target_angle}_thumbnail.png"
-            output_path = output_dir / thumb_name
-            img.save(output_path)
-
-        else:
-            print("Error: Missing filename for one or more images!")
-"""
+    # Support multiple datasets from command line
+    dataset_inputs = args.dataset.split()
+    for dataset_input in tqdm(dataset_inputs, desc="Datasets"):
+        for root, dirs, files in tqdm(os.walk(f"Data/{dataset_input}"), desc=f"Scanning {dataset_input}", leave=False):
+            image_files = [f for f in files if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+            if image_files and not dirs:
+                rel_path = os.path.relpath(root, "Data")
+                print(f"Generating thumbnails for: {rel_path}")
+                generate_thumbnails(rel_path, args.output_size)
