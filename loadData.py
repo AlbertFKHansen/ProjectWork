@@ -83,11 +83,22 @@ def loadDataset(root_path:str):
     """
 
     datasets = {}
-    for name in os.listdir(root_path):
-        full_path = os.path.join(root_path, name)
-        if os.path.isdir(full_path):
-            datasets[name] = _load_folder(full_path)
-    return datasets
+    if not os.path.exists(root_path):
+        raise FileNotFoundError(f"Path '{root_path}' does not exist.")
+    if not os.path.isdir(root_path):
+        raise NotADirectoryError(f"Path '{root_path}' is not a directory.")
+
+    # Check if there are any directories in root_path
+    dir_entries = [name for name in os.listdir(root_path) if os.path.isdir(os.path.join(root_path, name))]
+    if not dir_entries:
+        datasets = _load_folder(root_path)
+        return datasets
+    else:
+        for name in os.listdir(root_path):
+            full_path = os.path.join(root_path, name)
+            if os.path.isdir(full_path):
+                datasets[name] = _load_folder(full_path)
+        return datasets
 
 
 
