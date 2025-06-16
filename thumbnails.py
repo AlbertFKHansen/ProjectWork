@@ -41,6 +41,22 @@ def generate_thumbnails(dataset_input, output_size):
     processed = []
     for img in data:
         thumbnail = img.copy()
+        # center crop
+        width, height = thumbnail.size
+        if width != height:
+            if width > height:
+                # Remove equally from left and right
+                left = (width - height) // 2
+                right = left + height
+                top = 0
+                bottom = height
+            else:
+                # Remove equally from top and bottom
+                top = (height - width) // 2
+                bottom = top + width
+                left = 0
+                right = width
+            thumbnail = thumbnail.crop((left, top, right, bottom))
         thumbnail.thumbnail((output_size, output_size))
         processed.append(thumbnail)
 
