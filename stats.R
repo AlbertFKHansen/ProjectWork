@@ -7,7 +7,7 @@ install.packages("ppcor")
 ### To run the analysis first compute <1, then <0.65
 
 df <- read.csv("entropy_analysis.csv")
-df <- subset(df, accuracy < 1)  # Remove outliers
+df <- subset(df, accuracy < 0.65)  # Remove outliers
 
 # Reduced models to get individual R squared:
 model_full <- lm(accuracy ~ spectral_entropy + semantic_density, data = df)
@@ -150,10 +150,31 @@ wilcox.test(processed, non_processed, paired = TRUE)
 ### CIFAR TEST
 
 
-
 df <- read.csv("cifartest.csv")
 model <- lm(accuracy ~ semantic_density, data = df)
-summary(model)
+
+r2 = summary(model)$r.squared
+f2 = r2 / (1-r2)
+f2
+
+library(boot)
+
+# Define a function to compute f² from a sample
+f2_fn <- function(data, indices) {
+  d <- data[indices, ]  # Resample
+  model <- lm(accuracy ~ semantic_density, data = d)
+  r2 <- summary(model)$r.squared
+  f2 <- r2 / (1 - r2)
+  return(f2)
+}
+
+# Perform bootstrap with 1000 resamples
+set.seed(123)  # For reproducibility
+boot_results <- boot(data = df, statistic = f2_fn, R = 1000)
+
+# View results
+print(boot_results)
+boot.ci(boot_results, type = "perc")  # 95% CI for f² using percentile method
 
 # Extract residuals
 res <- residuals(model)
