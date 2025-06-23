@@ -3,8 +3,11 @@ Representing images with known physical interventions in CLIP models
 
 
 ## Authors and usernames
+
 Albert F. K. Hansen:            AlbertFKHansen, Albert Frederk Koch Hansen, b1n4ry
+
 Kristian M. Friis Nielsen:      Frii5, Kristian Friis Nielsen
+
 Marcus Zabell Olssen:           Marcus Olssen, Marcus Z. Olssen, Marucs Z. Olssen, Marucs
 
 Regarding Reproduceability, we will give an overview of the contents of our GitHub:
