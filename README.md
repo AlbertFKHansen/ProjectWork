@@ -34,7 +34,7 @@ The following are primay, installed packages we use (missing dependencies will b
 
 ## The Codebase:
 
-Important scripts:
+**Important scripts:**
 * loadData.py - Module for easily loading the datasets.
 * se_correlation.py - Conducts the correlation experiment for section 5.4 -> produces entropy_analysis.csv for use with R.
 * labelfitting.py - Uses our synthesized datasets to do labelfitting. Creates relevant JSON files to be used with se_correlation.py
@@ -46,24 +46,24 @@ Important scripts:
 * make_compacts.sh - Script to create combined grids of images for object interventions.
 * plot_gifs.sh - Script to create GIFs of the object intervention plots created by intervention_visual.ipynb.
 
-Important notebooks:
+**Important notebooks:**
 * semantic_direction.ipynb - Used for the semantic analysis and visuals in section 5.5
 * intervention_visual.ipynb - Used for plotting the intervention UMNAP and PCA visuals of raw images.
 * Exploratory_plotting.ipynb - Contains an interactive look into how data can be loaded and visualized: Plots generated for our results section.
 * Breakdown_analysis.ipynb - Analysis comparing projection techniques and breakdown analysis - used for section 5.3
 
-Documents:
+**Documents:**
 * entropy_analysis.csv - contains raw data from se_correlation.py
 * cifartest.csv - contains raw data from the CIFAR_test.py script.
 * GitBible - Document Albert made that specifies how to work with the repository.
 
-UGV Rover code:
+**UGV Rover code:**
 * dslt_ctrl.py - Contains the code for controlling the DSLR camera.
 * phue_ctrl.py - Contains the code for controlling the Philips Hue Hub.
 * main.py - The CLI used to collect the data.
 
 ## Directories:
-
+```
 Data/                       <- Contains all datasets used in the paper.
 ├── coil100/
 │   ├── rot/
@@ -95,3 +95,4 @@ Embeddings/                 <- Contains all JSON files of the dataset embeddings
 Figures/                    <- Visual diagrams (e.g. architectures, frameworks)
 rover/                      <- Contains code for the UGV Rover used to collect the data.
 Thumbnails/                 <- Contains thumbnails from the datasets.
+```
