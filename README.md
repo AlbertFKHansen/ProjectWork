@@ -48,7 +48,7 @@ The following are primay, installed packages we use (missing dependencies will b
 
 **Important notebooks:**
 * semantic_direction.ipynb - Used for the semantic analysis and visuals in section 5.5
-* intervention_visual.ipynb - Used for plotting the intervention UMNAP and PCA visuals of raw images.
+* intervention_visual.ipynb - Used for plotting the intervention UMAP and PCA visuals of raw images.
 * Exploratory_plotting.ipynb - Contains an interactive look into how data can be loaded and visualized: Plots generated for our results section.
 * Breakdown_analysis.ipynb - Analysis comparing projection techniques and breakdown analysis - used for section 5.3
 
@@ -65,20 +65,20 @@ The following are primay, installed packages we use (missing dependencies will b
 ## Directories:
 ```
 Data/                       <- Contains all datasets used in the paper.
-├── coil100/
+├── coil100/                <- The coil 100 dataset, 7200 files, 130.6 MB
 │   ├── rot/
 │   ├── coil100.py          <- script for organizing the coil 100 dataset.
 │   ├── GT_labels.json      <- Ground Truths for every object in the dataset.
-│   └── labels.json         <- Combination of Dataset GT and ImageNet classes. 
-├── combined/               <- Contains the combined GT and labels for coil100 and Dataset. used in report.
+│   └── labels.json         <- Combination of Dataset GT and ImageNet classes.
+├── combined/               <- Combined GT and labels for coil100 and Dataset.
 │   ├── GT_labels.json
 │   └── labels.json
-├── Dataset/                <- Our Dataset; TRIIL-17
+├── Dataset/                <- Our Dataset; TRIIL-17. 2006 files, 2.48 GB
 │   ├── rot/
 │   ├── temp/
 │   ├── GT_labels.json
 │   └── labels.json
-└── processed/              <- The processed version of TRILL-17
+└── processed/              <- The processed version of TRILL-17, 3.09 GB
     ├── rot/
     ├── temp/
     ├── GT_labels.json
@@ -86,13 +86,13 @@ Data/                       <- Contains all datasets used in the paper.
 
 deprecated/                 <- Old or unused code, kept for reference.
 
-Embeddings/                 <- Contains all JSON files of the dataset embeddings for our datasets.
+Embeddings/                 <- All JSON files for embeddings of datasets.
 ├── coil100.json
 ├── Dataset.json
 ├── labels.json
 └── processed.json
 
 Figures/                    <- Visual diagrams (e.g. architectures, frameworks)
-rover/                      <- Contains code for the UGV Rover used to collect the data.
+rover/                      <- Code for the UGV Rover used to collect the data.
 Thumbnails/                 <- Contains thumbnails from the datasets.
 ```
