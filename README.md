@@ -1,11 +1,13 @@
 # ProjectWork
 Representing images with known physical interventions in CLIP models
 
-ImageNet classes were pulled from:
-https://www.kaggle.com/datasets/skyap79/imagenet-classes
+
+## Authors and usernames
+Albert F. K. Hansen:            AlbertFKHansen, Albert Frederk Koch Hansen, b1n4ry
+Kristian M. Friis Nielsen:      Frii5, Kristian Friis Nielsen
+Marcus Zabell Olssen:           Marcus Olssen, Marcus Z. Olssen, Marucs Z. Olssen, Marucs
 
 Regarding Reproduceability, we will give an overview of the contents of our GitHub:
-
 
 ## The Paper:
 * Contains Algorithm/Pseudocode for the main Breakdown Algorithm.
@@ -14,8 +16,11 @@ Regarding Reproduceability, we will give an overview of the contents of our GitH
 * Proof for the choices of semantic similarity measures - See methods section 4.2
 
 
-## The Code:
+## Requierments:
 * All code is tested on Python version 3.12.9
+
+ImageNet classes were pulled from:
+https://www.kaggle.com/datasets/skyap79/imagenet-classes
 
 The following are primay, installed packages we use (missing dependencies will be installed automatically)
 * numpy - 2.1.0  
@@ -24,13 +29,11 @@ The following are primay, installed packages we use (missing dependencies will b
 * scikit-learn - 1.6.1  
 * matplotlib - 3.10.0  
 * umap-learn - 0.5.7 - Projection technique
-* torch - 2.5.1  - Dependency for CLIP
-  → Install with: Follow official instructions for your OS and hardware: https://pytorch.org/get-started/locally/  
+* torch - 2.5.1  - Dependency for CLIP - Install with: Follow official instructions for your OS and hardware: https://pytorch.org/get-started/locally/  
 * torchvision - 0.20.1  
 * torchaudio - 2.5.1  
-* CLIP - See CLIP's GitHub for installation: https://github.com/openai/CLIP  
+* CLIP - See CLIP's GitHub for installation: https://github.com/openai/CLIP - or install with `pip install openai-clip` 
 * statsmodels - 0.14.4 - For quantile regression plots
-
 
 ## The Codebase:
 
